@@ -28,6 +28,83 @@ st.set_page_config(
     layout="wide"
 )
 
+st.markdown("""
+<style>
+/* Sidebar styling */
+[data-testid="stSidebar"] {
+    background-color: #F8F7FF;
+    border-right: 0.5px solid #CECBF6;
+}
+[data-testid="stSidebar"] .stRadio label {
+    font-size: 14px;
+    color: #444441;
+    padding: 6px 10px;
+    border-radius: 8px;
+    display: block;
+}
+[data-testid="stSidebar"] .stRadio label:hover {
+    background: #EEEDFE;
+    color: #534AB7;
+}
+
+/* Main background */
+.stApp {
+    background-color: #FAFAFA;
+}
+
+/* Buttons */
+.stButton > button {
+    background-color: #534AB7;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 20px;
+    font-weight: 500;
+}
+.stButton > button:hover {
+    background-color: #3C3489;
+    color: white;
+}
+
+/* Cards / expanders */
+[data-testid="stExpander"] {
+    border: 0.5px solid #CECBF6;
+    border-radius: 12px;
+}
+
+/* Input fields */
+[data-testid="stTextInput"] input,
+[data-testid="stTextArea"] textarea {
+    border: 0.5px solid #CECBF6;
+    border-radius: 8px;
+}
+[data-testid="stTextInput"] input:focus,
+[data-testid="stTextArea"] textarea:focus {
+    border-color: #534AB7;
+    box-shadow: 0 0 0 2px #EEEDFE;
+}
+
+/* Success messages */
+.stSuccess {
+    background-color: #E1F5EE;
+    color: #0F6E56;
+    border-radius: 8px;
+}
+
+/* Info messages */
+.stInfo {
+    background-color: #EEEDFE;
+    color: #534AB7;
+    border-radius: 8px;
+}
+
+/* Divider */
+hr {
+    border-color: #CECBF6;
+}
+</style>
+""", unsafe_allow_html=True)
+
 st.title("🤖 UniAgent - Job Search Assistant")
 st.subheader("Your AI-powered job search companion")
 
