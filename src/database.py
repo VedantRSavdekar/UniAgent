@@ -28,6 +28,18 @@ def init_db():
             FOREIGN KEY (resume_id) REFERENCES resumes(id)
         )
     """)
+
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS interview_sessions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        resume_id INTEGER,
+        job_role TEXT,
+        questions TEXT,
+        user_answer TEXT,
+        ai_feedback TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+    """)
     
     conn.commit()
     conn.close()
@@ -69,3 +81,21 @@ def get_job_matches(resume_id):
     matches = cursor.fetchall()
     conn.close()
     return matches
+
+def save_interview_session(resume_id, job_role, questions, user_answer, ai_feedback):
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("""
+        INSERT INTO interview_sessions (resume_id, job_role, questions, user_answer, ai_feedback)
+        VALUES (?, ?, ?, ?, ?)
+    """, (resume_id, job_role, questions, user_answer, ai_feedback))
+    conn.commit()
+    conn.close()
+
+def get_interview_sessions():
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM interview_sessions ORDER BY created_at DESC")
+    sessions = cursor.fetchall()
+    conn.close()
+    return sessions

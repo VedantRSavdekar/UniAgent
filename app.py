@@ -1,3 +1,11 @@
+from PIL import GifImagePlugin
+from PIL import GifImagePlugin
+from PIL import GifImagePlugin
+from PIL import GifImagePlugin
+from PIL import GifImagePlugin
+from PIL import GifImagePlugin
+from PIL import GifImagePlugin
+from PIL import GifImagePlugin
 import streamlit as st
 from dotenv import load_dotenv
 import os
@@ -9,7 +17,7 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from src.resume_parser import extract_text_from_pdf, extract_text_from_docx, parse_resume
 from src.chat import chat_with_resume
 from src.job_matcher import match_job
-from src.database import init_db, save_resume, save_job_match, get_all_resumes
+from src.database import init_db, save_resume, save_job_match, get_all_resumes, save_interview_session, get_interview_sessions
 
 init_db()
 load_dotenv()
@@ -24,7 +32,7 @@ st.title("🤖 UniAgent - Job Search Assistant")
 st.subheader("Your AI-powered job search companion")
 
 st.sidebar.title("Navigation")
-page = st.sidebar.radio("Go to", ["Home", "Resume Parser", "Job Matcher", "Chat", "History"])
+page = st.sidebar.radio("Go to", ["Home", "Resume Parser", "Job Matcher", "Chat", "Interview Prep", "History"])
 
 if page == "Home":
     st.write("Welcome to UniAgent! Upload your resume to get started.")
@@ -132,3 +140,85 @@ elif page == "History":
         conn.close()
         st.success("History cleared!")
         st.rerun()
+
+elif page == "Interview Prep":
+    st.header("🎯 Interview Prep")
+
+    provider = st.sidebar.selectbox("Choose AI Provider", ["groq", "gemini"])
+
+    from src.interview_prep import generate_interview_questions, evaluate_answer
+
+    if "interview_questions" not in st.session_state:
+        st.session_state.interview_questions = []
+    if "current_question_index" not in st.session_state:
+        st.session_state.current_question_index = 0
+    if "interview_resume_text" not in st.session_state:
+        st.session_state.interview_resume_text = ""
+
+    # Step 1: Upload resume + enter job role
+    uploaded_file = st.file_uploader("Upload your resume", type=["pdf", "docx"])
+    job_role = st.text_input("Enter Job Role (e.g. Python Developer, Data Analyst)")
+
+    if uploaded_file:
+        if uploaded_file.type == "application/pdf":
+            st.session_state.interview_resume_text = extract_text_from_pdf(uploaded_file)
+        else:
+            st.session_state.interview_resume_text = extract_text_from_docx(uploaded_file)
+
+    if st.button("Generate Interview Questions"):
+        if st.session_state.interview_resume_text and job_role:
+            with st.spinner("Generating questions..."):
+                questions_text = generate_interview_questions(
+                    st.session_state.interview_resume_text, job_role, provider
+                )
+                # Parse into list
+                lines = questions_text.strip().split("\n")
+                questions = [l.strip() for l in lines if l.strip() and l[0].isdigit()]
+                st.session_state.interview_questions = questions
+                st.session_state.current_question_index = 0
+                st.session_state.job_role = job_role
+        else:
+            st.warning("Please upload resume and enter job role!")
+
+    # Step 2: Practice Q&A
+    if st.session_state.interview_questions:
+        st.divider()
+        total = len(st.session_state.interview_questions)
+        idx = st.session_state.current_question_index
+
+        st.progress((idx) / total)
+        st.markdown(f"**Question {idx + 1} of {total}**")
+        current_q = st.session_state.interview_questions[idx]
+        st.info(current_q)
+
+        user_answer = st.text_area("Your Answer", height=150, key=f"answer_{idx}")
+
+        if st.button("Submit Answer"):
+            if user_answer.strip():
+                with st.spinner("Evaluating your answer..."):
+                    feedback = evaluate_answer(
+                        current_q, user_answer,
+                        st.session_state.get("job_role", ""),
+                        provider
+                    )
+                    st.success("Feedback:")
+                    st.write(feedback)
+
+                    save_interview_session(
+                        resume_id=1,
+                        job_role=st.session_state.get("job_role", ""),
+                        questions=current_q,
+                        user_answer=user_answer,
+                        ai_feedback=feedback
+                    )
+
+                    if idx + 1 < total:
+                        st.session_state.current_question_index += 1
+                        st.rerun()
+                    else:
+                        st.balloons()
+                        st.success("🎉 You've completed all questions!")
+                        st.session_state.interview_questions = []
+            else:
+                st.warning("Please type your answer before submitting!")
+    
