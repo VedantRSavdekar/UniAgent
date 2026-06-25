@@ -32,7 +32,7 @@ st.markdown("""
 <style>
 /* Sidebar styling */
 [data-testid="stSidebar"] {
-    background-color: #F8F7FF;
+    background-color: #222124;
     border-right: 0.5px solid #CECBF6;
 }
 [data-testid="stSidebar"] .stRadio label {
@@ -49,7 +49,7 @@ st.markdown("""
 
 /* Main background */
 .stApp {
-    background-color: #FAFAFA;
+    background-color: #222124;
 }
 
 /* Buttons */
@@ -109,13 +109,21 @@ st.title("🤖 UniAgent - Job Search Assistant")
 st.subheader("Your AI-powered job search companion")
 
 st.sidebar.title("Navigation")
-page = st.sidebar.radio("Go to", ["Home", "Resume Parser", "Job Matcher", "Chat", "Interview Prep", "History"])
+page = st.sidebar.radio("Go to", [
+    "🏠  Home",
+    "📄  Resume Parser", 
+    "💼  Job Matcher",
+    "💬  Chat",
+    "🎯  Interview Prep",
+    "💾  History"
+])
 
-if page == "Home":
+if page == "🏠  Home":
+    st.header("🏠 Home")
     st.write("Welcome to UniAgent! Upload your resume to get started.")
     st.info("👈 Use the sidebar to navigate")
 
-elif page == "Resume Parser":
+elif page == "📄  Resume Parser":
     st.header("📄 Resume Parser")
     uploaded_file = st.file_uploader("Upload your resume", type=["pdf", "docx"])
     
@@ -138,7 +146,7 @@ elif page == "Resume Parser":
             )
             st.success("Resume saved to database!")
 
-elif page == "Job Matcher":
+elif page == "💼  Job Matcher":
     st.header("💼 Job Matcher")
     
     provider = st.sidebar.selectbox("Choose AI Provider", ["groq", "gemini"])
@@ -160,7 +168,7 @@ elif page == "Job Matcher":
         else:
             st.warning("Please upload resume and paste job description!")
 
-elif page == "Chat":
+elif page == "💬  Chat":
     st.header("💬 Chat with your Resume")
     
     provider = st.sidebar.selectbox("Choose AI Provider", ["groq", "gemini"])
@@ -191,7 +199,7 @@ elif page == "Chat":
         st.session_state.chat_history.append(HM(content=question))
         st.chat_message("AI").write(response)
 
-elif page == "History":
+elif page == "💾 History":
     st.header("💾 History")
     resumes = get_all_resumes()
     if not resumes:
@@ -218,7 +226,7 @@ elif page == "History":
         st.success("History cleared!")
         st.rerun()
 
-elif page == "Interview Prep":
+elif page == "🎯 Interview Prep":
     st.header("🎯 Interview Prep")
 
     provider = st.sidebar.selectbox("Choose AI Provider", ["groq", "gemini"])
