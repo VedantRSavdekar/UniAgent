@@ -302,7 +302,13 @@ elif page == "🎯  Interview Prep":
         
         st.markdown(f"**Question {idx + 1} of {total}**")
         current_q = st.session_state.interview_questions[idx]
-        st.info(current_q)
+        
+        # Custom styled question card
+        st.markdown(f"""
+        <div style="border:1px solid #CECBF6; border-left:4px solid #534AB7; border-radius:12px; padding:16px 20px; margin-bottom:12px; background:linear-gradient(90deg, #EEEDFE 0%, #FFFFFF 100%);">
+            <p style="font-size:16px; color:#3C3489; margin:0; font-weight:500;">{current_q}</p>
+        </div>
+        """, unsafe_allow_html=True)
 
         user_answer = st.text_area("Your Answer", height=150, key=f"answer_{idx}")
 
@@ -337,27 +343,60 @@ elif page == "🎯  Interview Prep":
 
 elif page == "💾  History":
     st.header("💾  History")
-    resumes = get_all_resumes()
-    if not resumes:
-        st.info("No resumes found. Upload a resume first!")
-    else:
-        st.write(f"Found {len(resumes)} resumes")
-        
-        # Simple display
-        for resume in resumes:
-            st.subheader(resume[1]) # name
-            st.write(f"Email: {resume[2]}") # email
-            st.write(f"Skills: {resume[3]}") # skills
-            with st.expander("Parsed Data"):
-                st.text(resume[4])
-            st.divider()
-    
-    if st.button("🗑️ Clear All History"):
-        conn = sqlite3.connect("data/uniagent.db")
-        cursor = conn.cursor()
-        cursor.execute("DELETE FROM resumes")
-        cursor.execute("DELETE FROM job_matches")
-        conn.commit()
-        conn.close()
-        st.success("History cleared!")
-        st.rerun()
+
+    tab1, tab2 = st.tabs(["📄 Resumes", "🎯 Interview Sessions"])
+
+    with tab1:
+        resumes = get_all_resumes()
+        if not resumes:
+            st.info("No resumes found. Upload a resume first!")
+        else:
+            st.markdown(f"<p style='color:#534AB7; font-size:13px;'>Found {len(resumes)} resume(s)</p>", unsafe_allow_html=True)
+            for resume in resumes:
+                st.markdown(f"""
+                    <div style="border:0.5px solid #CECBF6; border-radius:12px; padding:1rem 1.25rem; margin-bottom:1rem;">
+                        <div style="font-size:15px; font-weight:500; color:#534AB7;">👤 {resume[1]}</div>
+                        <div style="font-size:12px; color:#888780; margin-top:4px;">📧 {resume[2]}</div>
+                        <div style="font-size:12px; color:#888780; margin-top:2px;">🛠️ {resume[3]}</div>
+                        <div style="font-size:11px; color:#AFA9EC; margin-top:4px;">🕒 {resume[5]}</div>
+                    </div>
+                """, unsafe_allow_html=True)
+                with st.expander("View Parsed Data"):
+                    st.text(resume[4])
+
+        if st.button("🗑️ Clear Resume History"):
+            conn = sqlite3.connect("data/uniagent.db")
+            cursor = conn.cursor()
+            cursor.execute("DELETE FROM resumes")
+            cursor.execute("DELETE FROM job_matches")
+            conn.commit()
+            conn.close()
+            st.success("Resume history cleared!")
+            st.rerun()
+
+    with tab2:
+        sessions = get_interview_sessions()
+        if not sessions:
+            st.info("No interview sessions found. Practice first!")
+        else:
+            st.markdown(f"<p style='color:#534AB7; font-size:13px;'>Found {len(sessions)} session(s)</p>", unsafe_allow_html=True)
+            for session in sessions:
+                st.markdown(f"""
+                    <div style="border:0.5px solid #CECBF6; border-left: 3px solid #534AB7; border-radius:12px; padding:1rem 1.25rem; margin-bottom:1rem;">
+                        <div style="font-size:15px; font-weight:500; color:#534AB7;">🎯 {session[2]}</div>
+                        <div style="font-size:12px; color:#444441; margin-top:6px;"><b>Q:</b> {session[3]}</div>
+                        <div style="font-size:12px; color:#444441; margin-top:4px;"><b>Your answer:</b> {session[4]}</div>
+                        <div style="font-size:11px; color:#AFA9EC; margin-top:4px;">🕒 {session[6]}</div>
+                    </div>
+                """, unsafe_allow_html=True)
+                with st.expander("View AI Feedback"):
+                    st.write(session[5])
+
+        if st.button("🗑️ Clear Interview History"):
+            conn = sqlite3.connect("data/uniagent.db")
+            cursor = conn.cursor()
+            cursor.execute("DELETE FROM interview_sessions")
+            conn.commit()
+            conn.close()
+            st.success("Interview history cleared!")
+            st.rerun()
