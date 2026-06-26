@@ -30,77 +30,37 @@ st.set_page_config(
 
 st.markdown("""
 <style>
-/* Sidebar styling */
+/* Sidebar background */
 [data-testid="stSidebar"] {
-    background-color: #222124;
-    border-right: 0.5px solid #CECBF6;
-}
-[data-testid="stSidebar"] .stRadio label {
-    font-size: 14px;
-    color: #444441;
-    padding: 6px 10px;
-    border-radius: 8px;
-    display: block;
-}
-[data-testid="stSidebar"] .stRadio label:hover {
-    background: #EEEDFE;
-    color: #534AB7;
-}
-
-/* Main background */
-.stApp {
-    background-color: #222124;
+    background-color: #EEEDFE !important;
+    border-right: 0.5px solid #CECBF6 !important;
 }
 
 /* Buttons */
 .stButton > button {
-    background-color: #534AB7;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    padding: 8px 20px;
-    font-weight: 500;
+    background-color: #534AB7 !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 8px !important;
+    padding: 8px 20px !important;
+    font-weight: 500 !important;
 }
 .stButton > button:hover {
-    background-color: #3C3489;
-    color: white;
-}
-
-/* Cards / expanders */
-[data-testid="stExpander"] {
-    border: 0.5px solid #CECBF6;
-    border-radius: 12px;
+    background-color: #3C3489 !important;
+    color: white !important;
 }
 
 /* Input fields */
 [data-testid="stTextInput"] input,
 [data-testid="stTextArea"] textarea {
-    border: 0.5px solid #CECBF6;
-    border-radius: 8px;
-}
-[data-testid="stTextInput"] input:focus,
-[data-testid="stTextArea"] textarea:focus {
-    border-color: #534AB7;
-    box-shadow: 0 0 0 2px #EEEDFE;
+    border: 0.5px solid #CECBF6 !important;
+    border-radius: 8px !important;
 }
 
-/* Success messages */
-.stSuccess {
-    background-color: #E1F5EE;
-    color: #0F6E56;
-    border-radius: 8px;
-}
-
-/* Info messages */
-.stInfo {
-    background-color: #EEEDFE;
-    color: #534AB7;
-    border-radius: 8px;
-}
-
-/* Divider */
-hr {
-    border-color: #CECBF6;
+/* Expanders */
+[data-testid="stExpander"] {
+    border: 0.5px solid #CECBF6 !important;
+    border-radius: 12px !important;
 }
 </style>
 """, unsafe_allow_html=True)
