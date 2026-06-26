@@ -79,9 +79,41 @@ page = st.sidebar.radio("Go to", [
 ])
 
 if page == "🏠  Home":
-    st.header("🏠 Home")
-    st.write("Welcome to UniAgent! Upload your resume to get started.")
-    st.info("👈 Use the sidebar to navigate")
+    st.markdown("""
+        <div style="background:#EEEDFE; border-radius:16px; padding:2rem; margin-bottom:1.5rem;">
+            <h2 style="color:#534AB7; margin-bottom:0.5rem;">👋 Welcome to UniAgent!</h2>
+            <p style="color:#3C3489; font-size:15px; margin:0;">Your AI-powered job search companion. Upload your resume and let AI do the heavy lifting.</p>
+        </div>
+    """, unsafe_allow_html=True)
+
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.markdown("""
+            <div style="border:0.5px solid #CECBF6; border-radius:12px; padding:1rem; text-align:center;">
+                <div style="font-size:28px;">📄</div>
+                <div style="font-weight:500; color:#534AB7; margin:8px 0 4px;">Resume Parser</div>
+                <div style="font-size:12px; color:#888780;">Extract key info from your resume instantly</div>
+            </div>
+        """, unsafe_allow_html=True)
+    with col2:
+        st.markdown("""
+            <div style="border:0.5px solid #CECBF6; border-radius:12px; padding:1rem; text-align:center;">
+                <div style="font-size:28px;">💼</div>
+                <div style="font-weight:500; color:#534AB7; margin:8px 0 4px;">Job Matcher</div>
+                <div style="font-size:12px; color:#888780;">Match your resume to any job description</div>
+            </div>
+        """, unsafe_allow_html=True)
+    with col3:
+        st.markdown("""
+            <div style="border:0.5px solid #CECBF6; border-radius:12px; padding:1rem; text-align:center;">
+                <div style="font-size:28px;">🎯</div>
+                <div style="font-weight:500; color:#534AB7; margin:8px 0 4px;">Interview Prep</div>
+                <div style="font-size:12px; color:#888780;">Practice with AI generated questions</div>
+            </div>
+        """, unsafe_allow_html=True)
+
+    st.markdown("<br>", unsafe_allow_html=True)
+    st.info("👈 Use the sidebar to navigate between features!")
 
 elif page == "📄  Resume Parser":
     st.header("📄 Resume Parser")
