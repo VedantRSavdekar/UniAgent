@@ -303,7 +303,6 @@ elif page == "🎯  Interview Prep":
         st.markdown(f"**Question {idx + 1} of {total}**")
         current_q = st.session_state.interview_questions[idx]
         current_q = current_q.replace("*", "")
-        print(current_q)
 
         # Custom styled question card
         st.markdown(f"""
