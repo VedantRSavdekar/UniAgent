@@ -100,3 +100,16 @@ def get_interview_sessions():
     sessions = cursor.fetchall()
     conn.close()
     return sessions
+
+def get_interview_stats():
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("SELECT COUNT(*) FROM interview_sessions")
+    total_questions = cursor.fetchone()[0]
+    cursor.execute("SELECT COUNT(DISTINCT job_role) FROM interview_sessions")
+    total_sessions = cursor.fetchone()[0]
+    conn.close()
+    return {
+        "total_sessions": total_sessions,
+        "total_questions": total_questions,
+    }

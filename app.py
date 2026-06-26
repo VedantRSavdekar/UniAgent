@@ -17,7 +17,7 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from src.resume_parser import extract_text_from_pdf, extract_text_from_docx, parse_resume
 from src.chat import chat_with_resume
 from src.job_matcher import match_job
-from src.database import init_db, save_resume, save_job_match, get_all_resumes, save_interview_session, get_interview_sessions
+from src.database import init_db, save_resume, save_job_match, get_all_resumes, save_interview_session, get_interview_sessions, get_interview_stats
 
 init_db()
 load_dotenv()
@@ -159,35 +159,34 @@ elif page == "💬  Chat":
         st.session_state.chat_history.append(HM(content=question))
         st.chat_message("AI").write(response)
 
-elif page == "💾 History":
-    st.header("💾 History")
-    resumes = get_all_resumes()
-    if not resumes:
-        st.info("No resumes found. Upload a resume first!")
-    else:
-        st.write(f"Found {len(resumes)} resumes")
-        
-        # Simple display
-        for resume in resumes:
-            st.subheader(resume[1]) # name
-            st.write(f"Email: {resume[2]}") # email
-            st.write(f"Skills: {resume[3]}") # skills
-            with st.expander("Parsed Data"):
-                st.text(resume[4])
-            st.divider()
-    
-    if st.button("🗑️ Clear All History"):
-        conn = sqlite3.connect("data/uniagent.db")
-        cursor = conn.cursor()
-        cursor.execute("DELETE FROM resumes")
-        cursor.execute("DELETE FROM job_matches")
-        conn.commit()
-        conn.close()
-        st.success("History cleared!")
-        st.rerun()
+elif page == "🎯  Interview Prep":
+    st.header("🎯  Interview Prep")
 
-elif page == "🎯 Interview Prep":
-    st.header("🎯 Interview Prep")
+    stats = get_interview_stats()
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.markdown("""
+            <div style="background:#EEEDFE; padding:1rem; border-radius:12px; text-align:center;">
+                <div style="font-size:12px; color:#534AB7; margin-bottom:4px;">Sessions done</div>
+                <div style="font-size:28px; font-weight:500; color:#534AB7;">{}</div>
+            </div>
+        """.format(stats["total_sessions"]), unsafe_allow_html=True)
+    with col2:
+        st.markdown("""
+            <div style="background:#E1F5EE; padding:1rem; border-radius:12px; text-align:center;">
+                <div style="font-size:12px; color:#0F6E56; margin-bottom:4px;">Questions answered</div>
+                <div style="font-size:28px; font-weight:500; color:#0F6E56;">{}</div>
+            </div>
+        """.format(stats["total_questions"]), unsafe_allow_html=True)
+    with col3:
+        st.markdown("""
+            <div style="background:#FAECE7; padding:1rem; border-radius:12px; text-align:center;">
+                <div style="font-size:12px; color:#993C1D; margin-bottom:4px;">Avg score</div>
+                <div style="font-size:28px; font-weight:500; color:#993C1D;">—</div>
+            </div>
+        """, unsafe_allow_html=True)
+
+    st.divider()
 
     provider = st.sidebar.selectbox("Choose AI Provider", ["groq", "gemini"])
 
@@ -266,4 +265,30 @@ elif page == "🎯 Interview Prep":
                         st.session_state.interview_questions = []
             else:
                 st.warning("Please type your answer before submitting!")
+
+elif page == "💾  History":
+    st.header("💾  History")
+    resumes = get_all_resumes()
+    if not resumes:
+        st.info("No resumes found. Upload a resume first!")
+    else:
+        st.write(f"Found {len(resumes)} resumes")
+        
+        # Simple display
+        for resume in resumes:
+            st.subheader(resume[1]) # name
+            st.write(f"Email: {resume[2]}") # email
+            st.write(f"Skills: {resume[3]}") # skills
+            with st.expander("Parsed Data"):
+                st.text(resume[4])
+            st.divider()
     
+    if st.button("🗑️ Clear All History"):
+        conn = sqlite3.connect("data/uniagent.db")
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM resumes")
+        cursor.execute("DELETE FROM job_matches")
+        conn.commit()
+        conn.close()
+        st.success("History cleared!")
+        st.rerun()
