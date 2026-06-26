@@ -302,7 +302,9 @@ elif page == "🎯  Interview Prep":
         
         st.markdown(f"**Question {idx + 1} of {total}**")
         current_q = st.session_state.interview_questions[idx]
-        
+        current_q = current_q.replace("*", "")
+        print(current_q)
+
         # Custom styled question card
         st.markdown(f"""
         <div style="border:1px solid #CECBF6; border-left:4px solid #534AB7; border-radius:12px; padding:16px 20px; margin-bottom:12px; background:linear-gradient(90deg, #EEEDFE 0%, #FFFFFF 100%);">

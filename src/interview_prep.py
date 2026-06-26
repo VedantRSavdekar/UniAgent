@@ -18,7 +18,6 @@ def generate_interview_questions(resume_text, job_role, provider="groq"):
         """)
     ]
     response = llm.invoke(messages)
-    print(response.content)
     return response.content
 
 def evaluate_answer(question, user_answer, job_role, provider="groq"):
