@@ -85,6 +85,14 @@ if page == "🏠  Home":
 
 elif page == "📄  Resume Parser":
     st.header("📄 Resume Parser")
+
+    st.markdown("""
+        <div style="border: 1.5px dashed #AFA9EC; border-radius: 12px; padding: 1.2rem; text-align: center; margin-bottom: 0.5rem; background: #EEEDFE;">
+            <span style="font-size: 24px;">📄</span>
+            <p style="color: #534AB7; font-size: 13px; margin: 4px 0 0;">Drag and drop or click below to upload your resume</p>
+            <p style="color: #AFA9EC; font-size: 11px; margin: 2px 0 0;">Supported formats: PDF, DOCX</p>
+        </div>
+    """, unsafe_allow_html=True)
     uploaded_file = st.file_uploader("Upload your resume", type=["pdf", "docx"])
     
     if uploaded_file is not None:
@@ -111,6 +119,14 @@ elif page == "💼  Job Matcher":
     
     provider = st.sidebar.selectbox("Choose AI Provider", ["groq", "gemini"])
     
+    st.markdown("""
+        <div style="border: 1.5px dashed #AFA9EC; border-radius: 12px; padding: 1.2rem; text-align: center; margin-bottom: 0.5rem; background: #EEEDFE;">
+            <span style="font-size: 24px;">📄</span>
+            <p style="color: #534AB7; font-size: 13px; margin: 4px 0 0;">Drag and drop or click below to upload your resume</p>
+            <p style="color: #AFA9EC; font-size: 11px; margin: 2px 0 0;">Supported formats: PDF, DOCX</p>
+        </div>
+    """, unsafe_allow_html=True)
+
     uploaded_file = st.file_uploader("Upload your resume", type=["pdf", "docx"])
     job_desc = st.text_area("Paste Job Description here", height=200)
     
@@ -137,6 +153,14 @@ elif page == "💬  Chat":
         st.session_state.chat_history = []
     if "resume_text" not in st.session_state:
         st.session_state.resume_text = ""
+
+    st.markdown("""
+        <div style="border: 1.5px dashed #AFA9EC; border-radius: 12px; padding: 1.2rem; text-align: center; margin-bottom: 0.5rem; background: #EEEDFE;">
+            <span style="font-size: 24px;">📄</span>
+            <p style="color: #534AB7; font-size: 13px; margin: 4px 0 0;">Drag and drop or click below to upload your resume</p>
+            <p style="color: #AFA9EC; font-size: 11px; margin: 2px 0 0;">Supported formats: PDF, DOCX</p>
+        </div>
+    """, unsafe_allow_html=True)
 
     uploaded_file = st.file_uploader("Upload your resume first", type=["pdf", "docx"])
     if uploaded_file:
@@ -200,6 +224,13 @@ elif page == "🎯  Interview Prep":
         st.session_state.interview_resume_text = ""
 
     # Step 1: Upload resume + enter job role
+    st.markdown("""
+        <div style="border: 1.5px dashed #AFA9EC; border-radius: 12px; padding: 1.2rem; text-align: center; margin-bottom: 0.5rem; background: #EEEDFE;">
+            <span style="font-size: 24px;">📄</span>
+            <p style="color: #534AB7; font-size: 13px; margin: 4px 0 0;">Drag and drop or click below to upload your resume</p>
+            <p style="color: #AFA9EC; font-size: 11px; margin: 2px 0 0;">Supported formats: PDF, DOCX</p>
+        </div>
+    """, unsafe_allow_html=True)
     uploaded_file = st.file_uploader("Upload your resume", type=["pdf", "docx"])
     job_role = st.text_input("Enter Job Role (e.g. Python Developer, Data Analyst)")
 
@@ -230,7 +261,13 @@ elif page == "🎯  Interview Prep":
         total = len(st.session_state.interview_questions)
         idx = st.session_state.current_question_index
 
-        st.progress((idx) / total)
+        st.markdown(f"""
+        <div style="background:#EEEDFE; border-radius:8px; height:8px; margin-bottom:12px;">
+            <div style="background:#534AB7; width:{int((idx/total)*100)}%; height:8px; border-radius:8px; transition: width 0.3s ease;"></div>
+        </div>
+        <p style="font-size:12px; color:#534AB7; margin-bottom:8px;">{idx} of {total} questions completed</p>
+        """, unsafe_allow_html=True)
+        
         st.markdown(f"**Question {idx + 1} of {total}**")
         current_q = st.session_state.interview_questions[idx]
         st.info(current_q)
