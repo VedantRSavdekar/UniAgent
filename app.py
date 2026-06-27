@@ -1,11 +1,3 @@
-from PIL import GifImagePlugin
-from PIL import GifImagePlugin
-from PIL import GifImagePlugin
-from PIL import GifImagePlugin
-from PIL import GifImagePlugin
-from PIL import GifImagePlugin
-from PIL import GifImagePlugin
-from PIL import GifImagePlugin
 import streamlit as st
 from dotenv import load_dotenv
 import os
@@ -28,42 +20,8 @@ st.set_page_config(
     layout="wide"
 )
 
-st.markdown("""
-<style>
-/* Sidebar background */
-[data-testid="stSidebar"] {
-    background-color: #EEEDFE !important;
-    border-right: 0.5px solid #CECBF6 !important;
-}
-
-/* Buttons */
-.stButton > button {
-    background-color: #534AB7 !important;
-    color: white !important;
-    border: none !important;
-    border-radius: 8px !important;
-    padding: 8px 20px !important;
-    font-weight: 500 !important;
-}
-.stButton > button:hover {
-    background-color: #3C3489 !important;
-    color: white !important;
-}
-
-/* Input fields */
-[data-testid="stTextInput"] input,
-[data-testid="stTextArea"] textarea {
-    border: 0.5px solid #CECBF6 !important;
-    border-radius: 8px !important;
-}
-
-/* Expanders */
-[data-testid="stExpander"] {
-    border: 0.5px solid #CECBF6 !important;
-    border-radius: 12px !important;
-}
-</style>
-""", unsafe_allow_html=True)
+with open("static/style.css") as f:
+    st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
 st.title("🤖 UniAgent - Job Search Assistant")
 st.subheader("Your AI-powered job search companion")
