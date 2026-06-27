@@ -31,3 +31,34 @@
     border: 0.5px solid #CECBF6 !important;
     border-radius: 12px !important;
 }
+
+/* Chat messages styling */
+[data-testid="stChat"] {
+    background-color: #EEEDFE;
+    border-radius: 12px;
+    padding: 0 !important;
+}
+
+[data-testid="stChat"]>div {
+    margin-bottom: 12px !important;
+}
+
+/* User messages - light purple background */
+div[data-testid="stChat"] div:nth-child(even)>div {
+    background-color: #EEEDFE !important;
+    border-radius: 8px 12px 12px 8px !important;
+}
+
+/* AI messages - white background with purple left border */
+div[data-testid="stChat"] div:nth-child(odd)>div {
+    background-color: #FFFFFF !important;
+    border: 1px solid #CECBF6 !important;
+    border-left: 4px solid #534AB7 !important;
+    border-radius: 8px 12px 12px 8px !important;
+    margin-left: 10px !important;
+}
+
+/* Hide chat footer border */
+div[data-testid="stChat"]>div:last-child {
+    border-top: none !important;
+}

@@ -1,3 +1,8 @@
+# ============================================================
+# UniAgent - AI-Powered Job Search Assistant
+# Built with Streamlit, LangChain, Groq, Gemini, and SQLite
+# ============================================================
+
 import streamlit as st
 from dotenv import load_dotenv
 import os
@@ -5,97 +10,85 @@ import sys
 import sqlite3
 from langchain_core.messages import HumanMessage, SystemMessage
 
+# Add project root to path so we can import from src/
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
+# Import custom modules
 from src.resume_parser import extract_text_from_pdf, extract_text_from_docx, parse_resume
 from src.chat import chat_with_resume
 from src.job_matcher import match_job
 from src.database import init_db, save_resume, save_job_match, get_all_resumes, save_interview_session, get_interview_sessions, get_interview_stats
+from src.ui import render_upload_zone, render_welcome_card, render_feature_cards, render_stat_cards, render_progress_bar, render_question_card, render_resume_card, render_session_card
 
+# Initialize database (creates tables if they don't exist)
 init_db()
+
+# Load environment variables from .env file (API keys)
 load_dotenv()
 
+# ── Page Configuration ──────────────────────────────────────
 st.set_page_config(
     page_title="UniAgent - Job Search Assistant",
     page_icon="🤖",
     layout="wide"
 )
 
+# Load custom CSS from static/style.css for purple theme styling
 with open("static/style.css") as f:
     st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
+# ── App Title ────────────────────────────────────────────────
 st.title("🤖 UniAgent - Job Search Assistant")
 st.subheader("Your AI-powered job search companion")
 
+# ── Sidebar Navigation ───────────────────────────────────────
 st.sidebar.title("Navigation")
 page = st.sidebar.radio("Go to", [
     "🏠  Home",
-    "📄  Resume Parser", 
+    "📄  Resume Parser",
     "💼  Job Matcher",
     "💬  Chat",
     "🎯  Interview Prep",
     "💾  History"
 ])
 
+# ============================================================
+# PAGE: HOME
+# Shows welcome card and feature overview
+# ============================================================
 if page == "🏠  Home":
-    st.markdown("""
-        <div style="background:#EEEDFE; border-radius:16px; padding:2rem; margin-bottom:1.5rem;">
-            <h2 style="color:#534AB7; margin-bottom:0.5rem;">👋 Welcome to UniAgent!</h2>
-            <p style="color:#3C3489; font-size:15px; margin:0;">Your AI-powered job search companion. Upload your resume and let AI do the heavy lifting.</p>
-        </div>
-    """, unsafe_allow_html=True)
-
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        st.markdown("""
-            <div style="border:0.5px solid #CECBF6; border-radius:12px; padding:1rem; text-align:center;">
-                <div style="font-size:28px;">📄</div>
-                <div style="font-weight:500; color:#534AB7; margin:8px 0 4px;">Resume Parser</div>
-                <div style="font-size:12px; color:#888780;">Extract key info from your resume instantly</div>
-            </div>
-        """, unsafe_allow_html=True)
-    with col2:
-        st.markdown("""
-            <div style="border:0.5px solid #CECBF6; border-radius:12px; padding:1rem; text-align:center;">
-                <div style="font-size:28px;">💼</div>
-                <div style="font-weight:500; color:#534AB7; margin:8px 0 4px;">Job Matcher</div>
-                <div style="font-size:12px; color:#888780;">Match your resume to any job description</div>
-            </div>
-        """, unsafe_allow_html=True)
-    with col3:
-        st.markdown("""
-            <div style="border:0.5px solid #CECBF6; border-radius:12px; padding:1rem; text-align:center;">
-                <div style="font-size:28px;">🎯</div>
-                <div style="font-weight:500; color:#534AB7; margin:8px 0 4px;">Interview Prep</div>
-                <div style="font-size:12px; color:#888780;">Practice with AI generated questions</div>
-            </div>
-        """, unsafe_allow_html=True)
-
+    render_welcome_card()
+    render_feature_cards()
     st.markdown("<br>", unsafe_allow_html=True)
     st.info("👈 Use the sidebar to navigate between features!")
 
+# ============================================================
+# PAGE: RESUME PARSER
+# Uploads resume (PDF/DOCX), extracts text, parses with AI,
+# and saves result to SQLite database
+# ============================================================
 elif page == "📄  Resume Parser":
     st.header("📄 Resume Parser")
 
-    st.markdown("""
-        <div style="border: 1.5px dashed #AFA9EC; border-radius: 12px; padding: 1.2rem; text-align: center; margin-bottom: 0.5rem; background: #EEEDFE;">
-            <span style="font-size: 24px;">📄</span>
-            <p style="color: #534AB7; font-size: 13px; margin: 4px 0 0;">Drag and drop or click below to upload your resume</p>
-            <p style="color: #AFA9EC; font-size: 11px; margin: 2px 0 0;">Supported formats: PDF, DOCX</p>
-        </div>
-    """, unsafe_allow_html=True)
+    # Styled upload zone (decorative, actual upload below)
+    render_upload_zone()
+
     uploaded_file = st.file_uploader("Upload your resume", type=["pdf", "docx"])
-    
+
     if uploaded_file is not None:
         with st.spinner("Parsing your resume..."):
+            # Extract raw text based on file type
             if uploaded_file.type == "application/pdf":
                 text = extract_text_from_pdf(uploaded_file)
             else:
                 text = extract_text_from_docx(uploaded_file)
-            
+
+            # Send text to LLM for structured parsing
             result = parse_resume(text)
             st.success("Resume parsed successfully!")
             st.write(result)
 
+            # Save parsed resume to database
             save_resume(
                 name="Vedant",
                 email="vedant@email.com",
@@ -104,22 +97,23 @@ elif page == "📄  Resume Parser":
             )
             st.success("Resume saved to database!")
 
+# ============================================================
+# PAGE: JOB MATCHER
+# Compares resume against a job description using AI
+# and returns a match analysis
+# ============================================================
 elif page == "💼  Job Matcher":
     st.header("💼 Job Matcher")
-    
+
+    # AI provider selection in sidebar (Groq = fast, Gemini = accurate)
     provider = st.sidebar.selectbox("Choose AI Provider", ["groq", "gemini"])
-    
-    st.markdown("""
-        <div style="border: 1.5px dashed #AFA9EC; border-radius: 12px; padding: 1.2rem; text-align: center; margin-bottom: 0.5rem; background: #EEEDFE;">
-            <span style="font-size: 24px;">📄</span>
-            <p style="color: #534AB7; font-size: 13px; margin: 4px 0 0;">Drag and drop or click below to upload your resume</p>
-            <p style="color: #AFA9EC; font-size: 11px; margin: 2px 0 0;">Supported formats: PDF, DOCX</p>
-        </div>
-    """, unsafe_allow_html=True)
+
+    # Styled upload zone (decorative, actual upload below)
+    render_upload_zone()
 
     uploaded_file = st.file_uploader("Upload your resume", type=["pdf", "docx"])
     job_desc = st.text_area("Paste Job Description here", height=200)
-    
+
     if st.button("Match Job"):
         if uploaded_file and job_desc:
             with st.spinner("Analysing match..."):
@@ -127,30 +121,32 @@ elif page == "💼  Job Matcher":
                     resume_text = extract_text_from_pdf(uploaded_file)
                 else:
                     resume_text = extract_text_from_docx(uploaded_file)
-                
+
+                # Run AI match analysis
                 result = match_job(resume_text, job_desc, provider)
                 st.success("Match Complete!")
                 st.write(result)
         else:
             st.warning("Please upload resume and paste job description!")
 
+# ============================================================
+# PAGE: CHAT
+# Loads resume into context and allows user to have a
+# multi-turn conversation with the AI about their resume
+# ============================================================
 elif page == "💬  Chat":
     st.header("💬 Chat with your Resume")
-    
+
     provider = st.sidebar.selectbox("Choose AI Provider", ["groq", "gemini"])
-    
+
+    # Session state keeps chat history and resume text across reruns
     if "chat_history" not in st.session_state:
         st.session_state.chat_history = []
     if "resume_text" not in st.session_state:
         st.session_state.resume_text = ""
 
-    st.markdown("""
-        <div style="border: 1.5px dashed #AFA9EC; border-radius: 12px; padding: 1.2rem; text-align: center; margin-bottom: 0.5rem; background: #EEEDFE;">
-            <span style="font-size: 24px;">📄</span>
-            <p style="color: #534AB7; font-size: 13px; margin: 4px 0 0;">Drag and drop or click below to upload your resume</p>
-            <p style="color: #AFA9EC; font-size: 11px; margin: 2px 0 0;">Supported formats: PDF, DOCX</p>
-        </div>
-    """, unsafe_allow_html=True)
+    # Styled upload zone (decorative, actual upload below)
+    render_upload_zone()
 
     uploaded_file = st.file_uploader("Upload your resume first", type=["pdf", "docx"])
     if uploaded_file:
@@ -160,10 +156,12 @@ elif page == "💬  Chat":
             st.session_state.resume_text = extract_text_from_docx(uploaded_file)
         st.success("Resume loaded!")
 
+    # Display previous messages in chat format
     for msg in st.session_state.chat_history:
         role = "You" if isinstance(msg, HumanMessage) else "AI"
         st.chat_message(role).write(msg.content)
 
+    # Handle new user input
     question = st.chat_input("Ask anything about your resume or job search...")
     if question and st.session_state.resume_text:
         from src.chat import chat_with_resume
@@ -173,32 +171,17 @@ elif page == "💬  Chat":
         st.session_state.chat_history.append(HM(content=question))
         st.chat_message("AI").write(response)
 
+# ============================================================
+# PAGE: INTERVIEW PREP
+# Generates interview questions based on resume + job role,
+# then evaluates user answers with AI feedback
+# ============================================================
 elif page == "🎯  Interview Prep":
     st.header("🎯  Interview Prep")
 
+    # Show stats from previous interview sessions
     stats = get_interview_stats()
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        st.markdown("""
-            <div style="background:#EEEDFE; padding:1rem; border-radius:12px; text-align:center;">
-                <div style="font-size:12px; color:#534AB7; margin-bottom:4px;">Sessions done</div>
-                <div style="font-size:28px; font-weight:500; color:#534AB7;">{}</div>
-            </div>
-        """.format(stats["total_sessions"]), unsafe_allow_html=True)
-    with col2:
-        st.markdown("""
-            <div style="background:#E1F5EE; padding:1rem; border-radius:12px; text-align:center;">
-                <div style="font-size:12px; color:#0F6E56; margin-bottom:4px;">Questions answered</div>
-                <div style="font-size:28px; font-weight:500; color:#0F6E56;">{}</div>
-            </div>
-        """.format(stats["total_questions"]), unsafe_allow_html=True)
-    with col3:
-        st.markdown("""
-            <div style="background:#FAECE7; padding:1rem; border-radius:12px; text-align:center;">
-                <div style="font-size:12px; color:#993C1D; margin-bottom:4px;">Avg score</div>
-                <div style="font-size:28px; font-weight:500; color:#993C1D;">—</div>
-            </div>
-        """, unsafe_allow_html=True)
+    render_stat_cards(stats)
 
     st.divider()
 
@@ -206,6 +189,7 @@ elif page == "🎯  Interview Prep":
 
     from src.interview_prep import generate_interview_questions, evaluate_answer
 
+    # Session state stores questions, current index, and resume text
     if "interview_questions" not in st.session_state:
         st.session_state.interview_questions = []
     if "current_question_index" not in st.session_state:
@@ -213,14 +197,11 @@ elif page == "🎯  Interview Prep":
     if "interview_resume_text" not in st.session_state:
         st.session_state.interview_resume_text = ""
 
-    # Step 1: Upload resume + enter job role
-    st.markdown("""
-        <div style="border: 1.5px dashed #AFA9EC; border-radius: 12px; padding: 1.2rem; text-align: center; margin-bottom: 0.5rem; background: #EEEDFE;">
-            <span style="font-size: 24px;">📄</span>
-            <p style="color: #534AB7; font-size: 13px; margin: 4px 0 0;">Drag and drop or click below to upload your resume</p>
-            <p style="color: #AFA9EC; font-size: 11px; margin: 2px 0 0;">Supported formats: PDF, DOCX</p>
-        </div>
-    """, unsafe_allow_html=True)
+    # Step 1: Upload resume and enter job role
+
+    # Styled upload zone (decorative, actual upload below)
+    render_upload_zone()
+
     uploaded_file = st.file_uploader("Upload your resume", type=["pdf", "docx"])
     job_role = st.text_input("Enter Job Role (e.g. Python Developer, Data Analyst)")
 
@@ -236,7 +217,7 @@ elif page == "🎯  Interview Prep":
                 questions_text = generate_interview_questions(
                     st.session_state.interview_resume_text, job_role, provider
                 )
-                # Parse into list
+                # Parse numbered list from AI response into a Python list
                 lines = questions_text.strip().split("\n")
                 questions = [l.strip() for l in lines if l.strip() and l[0].isdigit()]
                 st.session_state.interview_questions = questions
@@ -245,35 +226,28 @@ elif page == "🎯  Interview Prep":
         else:
             st.warning("Please upload resume and enter job role!")
 
-    # Step 2: Practice Q&A
+    # Step 2: Show questions one by one and collect answers
     if st.session_state.interview_questions:
         st.divider()
         total = len(st.session_state.interview_questions)
         idx = st.session_state.current_question_index
 
-        st.markdown(f"""
-        <div style="background:#EEEDFE; border-radius:8px; height:8px; margin-bottom:12px;">
-            <div style="background:#534AB7; width:{int((idx/total)*100)}%; height:8px; border-radius:8px; transition: width 0.3s ease;"></div>
-        </div>
-        <p style="font-size:12px; color:#534AB7; margin-bottom:8px;">{idx} of {total} questions completed</p>
-        """, unsafe_allow_html=True)
-        
+        # Custom progress bar showing completion percentage
+        render_progress_bar(idx, total)
+
         st.markdown(f"**Question {idx + 1} of {total}**")
         current_q = st.session_state.interview_questions[idx]
         current_q = current_q.replace("*", "")
 
-        # Custom styled question card
-        st.markdown(f"""
-        <div style="border:1px solid #CECBF6; border-left:4px solid #534AB7; border-radius:12px; padding:16px 20px; margin-bottom:12px; background:linear-gradient(90deg, #EEEDFE 0%, #FFFFFF 100%);">
-            <p style="font-size:16px; color:#3C3489; margin:0; font-weight:500;">{current_q}</p>
-        </div>
-        """, unsafe_allow_html=True)
+        # Styled question card with purple left border
+        render_question_card(current_q)
 
         user_answer = st.text_area("Your Answer", height=150, key=f"answer_{idx}")
 
         if st.button("Submit Answer"):
             if user_answer.strip():
                 with st.spinner("Evaluating your answer..."):
+                    # Send question + answer to AI for feedback
                     feedback = evaluate_answer(
                         current_q, user_answer,
                         st.session_state.get("job_role", ""),
@@ -282,6 +256,7 @@ elif page == "🎯  Interview Prep":
                     st.success("Feedback:")
                     st.write(feedback)
 
+                    # Save session to database
                     save_interview_session(
                         resume_id=1,
                         job_role=st.session_state.get("job_role", ""),
@@ -290,6 +265,7 @@ elif page == "🎯  Interview Prep":
                         ai_feedback=feedback
                     )
 
+                    # Move to next question or finish
                     if idx + 1 < total:
                         st.session_state.current_question_index += 1
                         st.rerun()
@@ -300,9 +276,14 @@ elif page == "🎯  Interview Prep":
             else:
                 st.warning("Please type your answer before submitting!")
 
+# ============================================================
+# PAGE: HISTORY
+# Shows all saved resumes and interview sessions from SQLite
+# ============================================================
 elif page == "💾  History":
     st.header("💾  History")
 
+    # Two tabs - one for resumes, one for interview sessions
     tab1, tab2 = st.tabs(["📄 Resumes", "🎯 Interview Sessions"])
 
     with tab1:
@@ -312,14 +293,8 @@ elif page == "💾  History":
         else:
             st.markdown(f"<p style='color:#534AB7; font-size:13px;'>Found {len(resumes)} resume(s)</p>", unsafe_allow_html=True)
             for resume in resumes:
-                st.markdown(f"""
-                    <div style="border:0.5px solid #CECBF6; border-radius:12px; padding:1rem 1.25rem; margin-bottom:1rem;">
-                        <div style="font-size:15px; font-weight:500; color:#534AB7;">👤 {resume[1]}</div>
-                        <div style="font-size:12px; color:#888780; margin-top:4px;">📧 {resume[2]}</div>
-                        <div style="font-size:12px; color:#888780; margin-top:2px;">🛠️ {resume[3]}</div>
-                        <div style="font-size:11px; color:#AFA9EC; margin-top:4px;">🕒 {resume[5]}</div>
-                    </div>
-                """, unsafe_allow_html=True)
+                # resume tuple: (id, name, email, skills, parsed_data, created_at)
+                render_resume_card(resume)
                 with st.expander("View Parsed Data"):
                     st.text(resume[4])
 
@@ -340,14 +315,8 @@ elif page == "💾  History":
         else:
             st.markdown(f"<p style='color:#534AB7; font-size:13px;'>Found {len(sessions)} session(s)</p>", unsafe_allow_html=True)
             for session in sessions:
-                st.markdown(f"""
-                    <div style="border:0.5px solid #CECBF6; border-left: 3px solid #534AB7; border-radius:12px; padding:1rem 1.25rem; margin-bottom:1rem;">
-                        <div style="font-size:15px; font-weight:500; color:#534AB7;">🎯 {session[2]}</div>
-                        <div style="font-size:12px; color:#444441; margin-top:6px;"><b>Q:</b> {session[3]}</div>
-                        <div style="font-size:12px; color:#444441; margin-top:4px;"><b>Your answer:</b> {session[4]}</div>
-                        <div style="font-size:11px; color:#AFA9EC; margin-top:4px;">🕒 {session[6]}</div>
-                    </div>
-                """, unsafe_allow_html=True)
+                # session tuple: (id, resume_id, job_role, questions, user_answer, ai_feedback, created_at)
+                render_session_card(session)
                 with st.expander("View AI Feedback"):
                     st.write(session[5])
 
