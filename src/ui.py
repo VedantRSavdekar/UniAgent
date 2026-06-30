@@ -1,5 +1,5 @@
 # ============================================================
-# utils.py - Reusable UI components for UniAgent
+# ui.py - Reusable UI components for UniAgent
 # All HTML/CSS rendering functions are stored here to keep
 # app.py clean and readable
 # ============================================================

@@ -1,3 +1,9 @@
+# ============================================================
+# job_matcher.py - AI-powered resume vs job description matcher
+# Compares a resume to a job description and returns a match
+# score, skill gaps, and improvement suggestions
+# ============================================================
+
 import os
 from dotenv import load_dotenv
 from langchain_groq import ChatGroq
@@ -7,6 +13,7 @@ from langchain_core.messages import HumanMessage
 load_dotenv()
 
 def get_llm(provider="groq"):
+    """Returns an LLM instance based on chosen provider (Groq or Gemini)"""
     if provider == "groq":
         return ChatGroq(
             api_key=os.getenv("GROQ_API_KEY"),
@@ -19,6 +26,10 @@ def get_llm(provider="groq"):
         )
 
 def match_job(resume_text, job_description, provider="groq"):
+    """
+    Sends resume + job description to the LLM and asks it to
+    return a match score, matching/missing skills, and tips
+    """
     llm = get_llm(provider)
     message = HumanMessage(content=f"""Compare this resume with the job description and provide:
     1. Match Score (out of 100)

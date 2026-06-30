@@ -1,3 +1,9 @@
+# ============================================================
+# resume_parser.py - Resume text extraction and AI parsing
+# Handles reading PDF/DOCX files and using LLM to extract
+# structured data (name, email, skills, experience, education)
+# ============================================================
+
 import PyPDF2
 import docx
 import os
@@ -9,6 +15,7 @@ from langchain_core.messages import HumanMessage
 load_dotenv()
 
 def get_llm(provider="groq"):
+    """Returns an LLM instance based on chosen provider (Groq or Gemini)"""
     if provider == "groq":
         return ChatGroq(
             api_key=os.getenv("GROQ_API_KEY"),
@@ -21,6 +28,7 @@ def get_llm(provider="groq"):
         )
 
 def extract_text_from_pdf(file):
+    """Reads a PDF file and extracts all text page by page"""
     reader = PyPDF2.PdfReader(file)
     text = ""
     for page in reader.pages:
@@ -28,6 +36,7 @@ def extract_text_from_pdf(file):
     return text
 
 def extract_text_from_docx(file):
+    """Reads a DOCX file and extracts all text paragraph by paragraph"""
     doc = docx.Document(file)
     text = ""
     for para in doc.paragraphs:
@@ -35,6 +44,10 @@ def extract_text_from_docx(file):
     return text
 
 def parse_resume(text, provider="groq"):
+    """
+    Sends raw resume text to the LLM and asks it to extract
+    structured fields: Name, Email, Skills, Experience, Education
+    """
     llm = get_llm(provider)
     message = HumanMessage(content=f"""Extract the following from this resume and return as structured text:
     - Full Name
