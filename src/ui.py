@@ -9,7 +9,7 @@ import streamlit as st
 def render_upload_zone():
     """Renders a styled drag-and-drop upload zone above the file uploader"""
     st.markdown("""
-        <div style="border: 1.5px dashed #AFA9EC; border-radius: 12px; padding: 1.2rem; text-align: center; margin-bottom: 0.5rem; background: #EEEDFE;">
+        <div style="border: 1.5px solid #CECBF6; border-radius: 12px; padding: 1.2rem; text-align: center; margin-bottom: 0.5rem; background: #EEEDFE;">
             <span style="font-size: 24px;">📄</span>
             <p style="color: #534AB7; font-size: 13px; margin: 4px 0 0;">Drag and drop or click below to upload your resume</p>
             <p style="color: #AFA9EC; font-size: 11px; margin: 2px 0 0;">Supported formats: PDF, DOCX</p>

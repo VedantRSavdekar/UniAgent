@@ -198,83 +198,80 @@ elif page == "🎯  Interview Prep":
         st.session_state.interview_resume_text = ""
 
     # Step 1: Upload resume and enter job role
+    
+    with st.container(border=True):
+        # Styled upload zone (decorative, actual upload below)
+        render_upload_zone()
+        uploaded_file = st.file_uploader("Upload your resume", type=["pdf", "docx"])
+        job_role = st.text_input("Enter Job Role (e.g. Python Developer, Data Analyst)")
 
-    # Styled upload zone (decorative, actual upload below)
-    render_upload_zone()
+        if uploaded_file:
+            if uploaded_file.type == "application/pdf":
+                st.session_state.interview_resume_text = extract_text_from_pdf(uploaded_file)
+            else:
+                st.session_state.interview_resume_text = extract_text_from_docx(uploaded_file)
+        
 
-    uploaded_file = st.file_uploader("Upload your resume", type=["pdf", "docx"])
-    job_role = st.text_input("Enter Job Role (e.g. Python Developer, Data Analyst)")
-
-    if uploaded_file:
-        if uploaded_file.type == "application/pdf":
-            st.session_state.interview_resume_text = extract_text_from_pdf(uploaded_file)
-        else:
-            st.session_state.interview_resume_text = extract_text_from_docx(uploaded_file)
-
-    if st.button("Generate Interview Questions"):
-        if st.session_state.interview_resume_text and job_role:
-            with st.spinner("Generating questions..."):
-                questions_text = generate_interview_questions(
-                    st.session_state.interview_resume_text, job_role, provider
-                )
-                # Parse numbered list from AI response into a Python list
-                lines = questions_text.strip().split("\n")
-                questions = [l.strip() for l in lines if l.strip() and l[0].isdigit()]
-                st.session_state.interview_questions = questions
-                st.session_state.current_question_index = 0
-                st.session_state.job_role = job_role
-        else:
-            st.warning("Please upload resume and enter job role!")
+        if st.button("Generate Interview Questions"):
+            if st.session_state.interview_resume_text and job_role:
+                with st.spinner("Generating questions..."):
+                    questions_text = generate_interview_questions(
+                        st.session_state.interview_resume_text, job_role, provider
+                    )
+                    lines = questions_text.strip().split("\n")
+                    questions = [l.strip() for l in lines if l.strip() and l[0].isdigit()]
+                    st.session_state.interview_questions = questions
+                    st.session_state.current_question_index = 0
+                    st.session_state.job_role = job_role
+            else:
+                st.warning("Please upload resume and enter job role!")
 
     # Step 2: Show questions one by one and collect answers
     if st.session_state.interview_questions:
         st.divider()
         total = len(st.session_state.interview_questions)
         idx = st.session_state.current_question_index
+  
+        with st.container(border=True):
+            # Custom progress bar showing completion percentage
+            render_progress_bar(idx, total)
 
-        # Custom progress bar showing completion percentage
-        render_progress_bar(idx, total)
+            st.markdown(f"**Question {idx + 1} of {total}**")
+            current_q = st.session_state.interview_questions[idx]
+            current_q = current_q.replace("*", "")
 
-        st.markdown(f"**Question {idx + 1} of {total}**")
-        current_q = st.session_state.interview_questions[idx]
-        current_q = current_q.replace("*", "")
+            render_question_card(current_q)
 
-        # Styled question card with purple left border
-        render_question_card(current_q)
+            user_answer = st.text_area("Your Answer", height=150, key=f"answer_{idx}")
 
-        user_answer = st.text_area("Your Answer", height=150, key=f"answer_{idx}")
+            if st.button("Submit Answer"):
+                if user_answer.strip():
+                    with st.spinner("Evaluating your answer..."):
+                        feedback = evaluate_answer(
+                            current_q, user_answer,
+                            st.session_state.get("job_role", ""),
+                            provider
+                        )
+                        st.success("Feedback:")
+                        st.write(feedback)
 
-        if st.button("Submit Answer"):
-            if user_answer.strip():
-                with st.spinner("Evaluating your answer..."):
-                    # Send question + answer to AI for feedback
-                    feedback = evaluate_answer(
-                        current_q, user_answer,
-                        st.session_state.get("job_role", ""),
-                        provider
-                    )
-                    st.success("Feedback:")
-                    st.write(feedback)
+                        save_interview_session(
+                            resume_id=1,
+                            job_role=st.session_state.get("job_role", ""),
+                            questions=current_q,
+                            user_answer=user_answer,
+                            ai_feedback=feedback
+                        )
 
-                    # Save session to database
-                    save_interview_session(
-                        resume_id=1,
-                        job_role=st.session_state.get("job_role", ""),
-                        questions=current_q,
-                        user_answer=user_answer,
-                        ai_feedback=feedback
-                    )
-
-                    # Move to next question or finish
-                    if idx + 1 < total:
-                        st.session_state.current_question_index += 1
-                        st.rerun()
-                    else:
-                        st.balloons()
-                        st.success("🎉 You've completed all questions!")
-                        st.session_state.interview_questions = []
-            else:
-                st.warning("Please type your answer before submitting!")
+                        if idx + 1 < total:
+                            st.session_state.current_question_index += 1
+                            st.rerun()
+                        else:
+                            st.balloons()
+                            st.success("🎉 You've completed all questions!")
+                            st.session_state.interview_questions = []
+                else:
+                    st.warning("Please type your answer before submitting!")
 
 # ============================================================
 # PAGE: HISTORY
