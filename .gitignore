@@ -1,0 +1,20 @@
+# Environment & secrets
+.env
+
+# Virtual environment
+.Vedant/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Vector DB (regenerated locally, don't commit)
+resume_vector_db/
+
+# Personal resume data
+Assets/*.pdf
+
+# OS/editor junk
+.vscode/
+.idea/
+*.log
