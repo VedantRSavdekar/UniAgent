@@ -57,12 +57,9 @@ def search_jobs(query: str, location: str = "India"):
         return "No job postings found for this query."
 
     return [
-        {
-            "title": job.get("job_title"),
-            "company": job.get("employer_name"),
-            "location": job.get("job_city") or job.get("job_country"),
-            "apply_link": job.get("job_apply_link"),
-        }
+        f"**{job.get('job_title')}** at {job.get('employer_name')} "
+        f"({job.get('job_city') or job.get('job_country')}) — "
+        f"[Apply here]({job.get('job_apply_link')})"
         for job in jobs
     ]
 
@@ -72,7 +69,7 @@ class JobSearchAgent:
         llm = ChatGroq(
             model="openai/gpt-oss-120b",
             temperature=0.1,
-            max_tokens=1024,
+            max_tokens=2048,
             api_key=os.getenv("GROQ_API_KEY")
         )
 
@@ -100,6 +97,12 @@ class JobSearchAgent:
             "Do NOT include a location in the query text — use the `location` parameter instead.\n"
             "DO NOT ask for clarification. If search_jobs returns an error, report it "
             "clearly instead of retrying.\n\n"
+            "CRITICAL FORMATTING RULE: When presenting job results, each job listing "
+            "MUST include its apply link directly within that same row/bullet — "
+            "e.g. '**Job Title** at Company (Location) — [Apply here](url)'. "
+            "Do NOT list apply links separately in a different section (e.g. under "
+            "'Next Steps' or 'Recommendations'). Every job mention must carry its own "
+            "link inline, immediately after that job is described.\n\n"
             f"CANDIDATE CAREER EVALUATION REPORT:\n{career_report}"
         ))
 

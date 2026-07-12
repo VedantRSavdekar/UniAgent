@@ -22,7 +22,17 @@ class RAGService:
             persist_directory="./resume_vector_db"
         )
 
+    def clear_existing_for_source(self, file_path: str) -> None:
+        """Deletes any previously embedded chunks that came from this exact file path."""
+        try:
+            self.vector_store.delete(where={"source": file_path})
+        except Exception as e:
+            print(f"Warning: could not clear existing embeddings for {file_path}: {e}")
+
     def process_and_create_embeddings(self, file_path: str = "./Assets/Vedant_Savdekar_CV.pdf") -> None:
+        # Remove old chunks for this same file before adding new ones
+        self.clear_existing_for_source(file_path)
+
         loader = PyPDFLoader(file_path)
         pages = loader.load()
 
