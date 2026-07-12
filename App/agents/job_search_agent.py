@@ -90,20 +90,21 @@ class JobSearchAgent:
 
         system_prompt = SystemMessage(content=(
             "You are a job search agent. Use the candidate's career evaluation report "
-            "below to call `search_jobs`.\n"
+            "below ONLY as internal context to decide the search query — do NOT repeat, "
+            "restate, or summarize the report itself in your response.\n"
+            "Your final output should start DIRECTLY with the job listings — do not "
+            "reprint the candidate's profile, strengths, or skills section.\n"
             "IMPORTANT: The `query` argument must be SHORT — just ONE job title, "
             "e.g. 'AI Engineer' or 'Machine Learning Engineer fresher'. "
             "Do NOT stack multiple roles or skills into the query.\n"
             "Do NOT include a location in the query text — use the `location` parameter instead.\n"
             "DO NOT ask for clarification. If search_jobs returns an error, report it "
             "clearly instead of retrying.\n\n"
-            "CRITICAL FORMATTING RULE: When presenting job results, each job listing "
-            "MUST include its apply link directly within that same row/bullet — "
-            "e.g. '**Job Title** at Company (Location) — [Apply here](url)'. "
-            "Do NOT list apply links separately in a different section (e.g. under "
-            "'Next Steps' or 'Recommendations'). Every job mention must carry its own "
-            "link inline, immediately after that job is described.\n\n"
-            f"CANDIDATE CAREER EVALUATION REPORT:\n{career_report}"
+            "CRITICAL FORMATTING RULE: Each job listing MUST include its apply link "
+            "directly within that same row/bullet — e.g. "
+            "'**Job Title** at Company (Location) — [Apply here](url)'. "
+            "Do NOT list apply links separately in a different section.\n\n"
+            f"CANDIDATE CAREER EVALUATION REPORT (context only, do not repeat this):\n{career_report}"
         ))
 
         full_messages = [system_prompt] + messages
