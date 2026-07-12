@@ -104,6 +104,10 @@ class JobSearchAgent:
             "directly within that same row/bullet — e.g. "
             "'**Job Title** at Company (Location) — [Apply here](url)'. "
             "Do NOT list apply links separately in a different section.\n\n"
+            "CRITICAL: The career evaluation report above may be incomplete or truncated. "     
+            "Do NOT continue, complete, or extend that report under any circumstance. "         
+            "Your response must start fresh, directly with job search results — treat the "    
+            "report only as background context for choosing your search query.\n\n"            
             f"CANDIDATE CAREER EVALUATION REPORT (context only, do not repeat this):\n{career_report}"
         ))
 

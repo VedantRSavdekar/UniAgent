@@ -28,7 +28,7 @@ class CareerAssessmentAgent:
         llm = ChatGroq(
             model="openai/gpt-oss-120b",
             temperature=0.1,
-            max_tokens=1024,
+            max_tokens=2048,
             api_key=os.getenv("GROQ_API_KEY")
         )
 
