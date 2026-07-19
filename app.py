@@ -3,6 +3,7 @@ import streamlit as st
 from langchain_core.messages import HumanMessage, ToolMessage
 
 from App.services.rag_service import RAGService
+from App.services.validation import validate_uploaded_file, validate_pdf_has_text, ValidationError
 
 st.set_page_config(page_title="UniAgent — AI Career Assistant", page_icon="🎯", layout="centered")
 
@@ -32,6 +33,8 @@ if "job_results" not in st.session_state:
     st.session_state.job_results = None
 if "raw_job_listings" not in st.session_state:
     st.session_state.raw_job_listings = None
+if "ats_result" not in st.session_state:
+    st.session_state.ats_result = None
 
 
 # ---------- UI ----------
@@ -44,6 +47,12 @@ with st.sidebar:
     uploaded_file = st.file_uploader("Upload your resume (PDF)", type=["pdf"])
 
     if uploaded_file is not None:
+        try:
+            validate_uploaded_file(uploaded_file)
+        except ValidationError as ve:
+            st.error(str(ve))
+            st.stop()
+
         if st.session_state.processed_file_name != uploaded_file.name:
             os.makedirs("./Assets", exist_ok=True)
             save_path = f"./Assets/{uploaded_file.name}"
@@ -52,17 +61,22 @@ with st.sidebar:
 
             with st.status("Processing your resume...", expanded=True) as status:
                 try:
-                    status.update(label="📄 Reading PDF...")
-                    rag_service = get_rag_service()
+                    status.update(label="📄 Validating PDF content...")
+                    validate_pdf_has_text(save_path)
 
                     status.update(label="✂️ Splitting into chunks...")
                     status.update(label="🧬 Generating embeddings...")
 
+                    rag_service = get_rag_service()
                     rag_service.process_and_create_embeddings(file_path=save_path)
 
                     status.update(label="✅ Resume ready!", state="complete")
                     st.session_state.resume_ready = True
                     st.session_state.processed_file_name = uploaded_file.name
+
+                except ValidationError as ve:
+                    status.update(label="❌ Invalid PDF", state="error")
+                    st.error(str(ve))
 
                 except Exception as e:
                     status.update(label="❌ Failed to process resume", state="error")
@@ -70,6 +84,8 @@ with st.sidebar:
         else:
             st.success("✅ Resume already processed.")
 
+
+# ---------- Section 2: Career Assessment + Job Search ----------
 
 st.header("2. Run Assessment & Job Search")
 
@@ -134,7 +150,7 @@ if st.button("🚀 Run Career Assessment + Job Search", disabled=run_disabled, t
             st.error(f"Pipeline error: {e}")
 
 
-# ---------- Results ----------
+# ---------- Section 2 Results (shown right after its own button) ----------
 
 if st.session_state.career_report:
     st.subheader("📋 Career Evaluation Report")
@@ -144,3 +160,59 @@ if st.session_state.job_results:
     st.subheader("💼 Job Search Results")
     st.markdown(st.session_state.job_results)
 
+
+# ---------- Section 3: ATS Score Check ----------
+
+st.divider()
+st.header("3. ATS Score Check (Optional)")
+
+ats_disabled = not st.session_state.career_report
+
+if ats_disabled:
+    st.info("Run Career Assessment first (Section 2) before checking ATS score.")
+
+if st.button("📊 Check ATS Score", disabled=ats_disabled):
+    from App.services.ats_service import get_ats_score
+
+    with st.spinner("Analyzing ATS compatibility..."):
+        try:
+            ats_result = get_ats_score(st.session_state.career_report)
+            st.session_state.ats_result = ats_result
+        except Exception as e:
+            st.session_state.ats_result = None
+            st.error(f"ATS check failed: {e}")
+
+
+# ---------- Section 3 Results (persists across reruns) ----------
+
+if st.session_state.ats_result:
+    ats_result = st.session_state.ats_result
+
+    st.subheader(f"Overall Score: {ats_result.overall_score}/100")
+    st.progress(ats_result.overall_score / 100)
+
+    col1, col2 = st.columns(2)
+    with col1:
+        st.metric("Format Score", f"{ats_result.format_score}/100")
+    with col2:
+        if ats_result.keyword_match_score is not None:
+            st.metric("Keyword Match", f"{ats_result.keyword_match_score}/100")
+        else:
+            st.metric("Keyword Match", "N/A (no JD)")
+
+    if ats_result.format_issues:
+        st.subheader("⚠️ Format Issues")
+        for issue in ats_result.format_issues:
+            st.write(f"- {issue}")
+
+    if ats_result.matched_keywords:
+        st.subheader("✅ Matched Keywords")
+        st.write(", ".join(ats_result.matched_keywords))
+
+    if ats_result.missing_keywords:
+        st.subheader("❌ Missing Keywords")
+        st.write(", ".join(ats_result.missing_keywords))
+
+    st.subheader("💡 Recommendations")
+    for rec in ats_result.recommendations:
+        st.write(f"- {rec}")
