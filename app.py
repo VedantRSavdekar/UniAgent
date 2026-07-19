@@ -81,8 +81,6 @@ with st.sidebar:
                 except Exception as e:
                     status.update(label="❌ Failed to process resume", state="error")
                     st.error(f"Error processing resume: {e}")
-        else:
-            st.success("✅ Resume already processed.")
 
 
 # ---------- Section 2: Career Assessment + Job Search ----------
