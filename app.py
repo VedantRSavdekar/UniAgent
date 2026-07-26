@@ -35,6 +35,8 @@ if "raw_job_listings" not in st.session_state:
     st.session_state.raw_job_listings = None
 if "ats_result" not in st.session_state:
     st.session_state.ats_result = None
+if "pdf_bytes" not in st.session_state:
+    st.session_state.pdf_bytes = None
 
 
 # ---------- UI ----------
@@ -214,3 +216,34 @@ if st.session_state.ats_result:
     st.subheader("💡 Recommendations")
     for rec in ats_result.recommendations:
         st.write(f"- {rec}")
+
+
+# ---------- Section 4: Export Report ----------
+
+st.divider()
+st.header("4. Export Report")
+
+can_export = bool(st.session_state.career_report or st.session_state.job_results)
+
+if not can_export:
+    st.info("Run Career Assessment first to generate a downloadable report.")
+
+if can_export:
+    from App.services.pdf_export_service import generate_report_pdf
+
+    if st.button("📥 Generate PDF Report"):
+        with st.spinner("Building your PDF..."):
+            pdf_bytes = generate_report_pdf(
+                career_report=st.session_state.career_report,
+                job_results=st.session_state.job_results,
+                ats_result=st.session_state.ats_result,
+            )
+            st.session_state.pdf_bytes = pdf_bytes
+
+    if st.session_state.get("pdf_bytes"):
+        st.download_button(
+            label="⬇️ Download PDF",
+            data=st.session_state.pdf_bytes,
+            file_name="UniAgent_Career_Report.pdf",
+            mime="application/pdf",
+        )
