@@ -59,6 +59,7 @@ def generate_report_pdf(
     career_report: str = None,
     job_results: str = None,
     ats_result=None,
+    cover_letter: str = None,
     candidate_name: str = "Candidate",
 ) -> bytes:
     """
@@ -136,6 +137,10 @@ def generate_report_pdf(
             story.append(Paragraph("Recommendations:", body_style))
             for rec in ats_result.recommendations:
                 story.append(Paragraph(f"• {_escape_only(rec)}", body_style))
+
+    if cover_letter:
+        story.append(PageBreak())
+        add_section("Cover Letter", cover_letter)
 
     doc.build(story)
     buffer.seek(0)

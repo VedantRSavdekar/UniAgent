@@ -18,3 +18,6 @@ Assets/*.pdf
 .vscode/
 .idea/
 *.log
+
+# Local sessions (avoid committing user data)
+local_sessions/
